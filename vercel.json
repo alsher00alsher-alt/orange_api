@@ -1,0 +1,47 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "report.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "builder/index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/report.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/deepseek.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/report",
+      "dest": "/api/report.py"
+    },
+    {
+      "src": "/api/deepseek",
+      "dest": "/api/deepseek.py"
+    },
+    {
+      "src": "/builder",
+      "dest": "/builder/index.html"
+    },
+    {
+      "src": "/report",
+      "dest": "/report.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}

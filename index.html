@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Stream & Vision</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --accent-glow: #00f2fe;
+            --accent-blue: #3b82f6;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --font-main: 'Cairo', sans-serif;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-main);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .ambient-water {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 20%, rgba(6, 182, 212, 0.08), transparent 70%),
+                        radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.08), transparent 70%);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            z-index: 10;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(12px);
+        }
+
+        .header-btn:hover {
+            background: rgba(0, 242, 254, 0.15);
+            border-color: var(--accent-glow);
+            color: var(--accent-glow);
+        }
+
+        .current-mode-title {
+            font-size: 18px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #ffffff, #00f2fe, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+            padding: 10px 16px 16px 16px;
+            z-index: 10;
+            scrollbar-width: none;
+            width: 100%;
+        }
+        .main-container::-webkit-scrollbar { display: none; }
+
+        .chat-wrapper {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .welcome-hero {
+            text-align: center;
+            margin: 30px 0 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .welcome-hero h1 {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 30%, var(--accent-glow) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 6px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            margin-top: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.25s ease;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(59, 130, 246, 0.25));
+            color: #fff;
+            border: 1px solid var(--accent-glow);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+        }
+
+        .msg {
+            display: flex;
+            width: 100%;
+            animation: fadeIn 0.25s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .msg.user { justify-content: flex-end; }
+        .msg.ai { justify-content: flex-start; }
+
+        .bubble {
+            max-width: 88%;
+            padding: 14px 18px;
+            border-radius: 20px;
+            font-size: 16px;
+            line-height: 1.7;
+            font-weight: 600;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .msg.user .bubble {
+            background: rgba(30, 58, 138, 0.65);
+            border: 1px solid rgba(59, 130, 246, 0.35);
+            color: #ffffff;
+            border-bottom-left-radius: 6px;
+            backdrop-filter: blur(12px);
+        }
+
+        .msg.ai .bubble {
+            background: rgba(17, 24, 39, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #f1f5f9;
+            border-bottom-right-radius: 6px;
+            backdrop-filter: blur(12px);
+        }
+
+        .bubble img {
+            max-width: 100%;
+            border-radius: 14px;
+            margin-top: 10px;
+        }
+
+        .thumbnails-row {
+            display: flex;
+            gap: 12px;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto 10px auto;
+            padding: 0 16px;
+            overflow-x: auto;
+        }
+
+        .thumb-card {
+            background: rgba(17, 24, 39, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            backdrop-filter: blur(20px);
+            min-width: 220px;
+        }
+
+        .thumb-img {
+            width: 52px;
+            height: 52px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 1px solid var(--accent-glow);
+        }
+
+        .thumb-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+        }
+
+        .thumb-status {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .thumb-remove {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .thumb-remove:hover { background: var(--danger); color: #fff; }
+
+        .input-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 16px 16px 16px;
+            z-index: 10;
+        }
+
+        .input-capsule {
+            background: rgba(17, 24, 39, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(25px);
+            border-radius: 28px;
+            padding: 10px 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-top input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            flex: 1;
+            font-family: var(--font-main);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, var(--accent-glow), var(--accent-blue));
+            border: none;
+            color: #fff;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+            flex-shrink: 0;
+        }
+
+        .input-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .action-circle {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pill.active {
+            background: rgba(0, 242, 254, 0.15);
+            color: var(--accent-glow);
+            border-color: var(--accent-glow);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 82%;
+            max-width: 340px;
+            height: 100%;
+            background: rgba(11, 15, 25, 0.96);
+            z-index: 100;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 22px;
+            overflow-y: auto;
+            backdrop-filter: blur(25px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar.open { transform: translateX(0); }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 90;
+            display: none;
+        }
+        .overlay.show { display: block; }
+
+        .chat-item {
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        .chat-item:hover { background: rgba(0, 242, 254, 0.08); border-color: var(--accent-glow); }
+        .chat-item.active { background: rgba(0, 242, 254, 0.15); border-color: var(--accent-glow); }
+
+        .typing-cursor::after {
+            content: '❚';
+            display: inline-block;
+            color: var(--accent-glow);
+            animation: blink 0.8s infinite;
+            margin-right: 2px;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+<div class="ambient-water"></div>
+
+<div class="header">
+    <button class="header-btn" onclick="newChat()" title="شات جديد">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+    
+    <span class="current-mode-title" id="headerModeTitle">
+        <i class="fa-solid fa-bolt" style="color:var(--accent-glow)"></i> سريع
+    </span>
+    
+    <button class="header-btn" onclick="openSidebar()" title="سجل المحادثات">
+        <i class="fa-solid fa-bars-staggered"></i>
+    </button>
+</div>
+
+<div class="main-container">
+    <div class="chat-wrapper">
+        <div class="welcome-hero" id="welcomeHero">
+            <h1>كيف يمكنني مساعدتك اليوم؟</h1>
+            
+            <div class="mode-selector">
+                <button class="mode-btn active" onclick="setMode(this,'fast')"><i class="fa-solid fa-bolt"></i> سريع</button>
+                <button class="mode-btn" onclick="setMode(this,'expert')"><i class="fa-regular fa-gem"></i> خبير</button>
+                <button class="mode-btn" onclick="setMode(this,'vision')"><i class="fa-regular fa-image"></i> تحليل الصور</button>
+            </div>
+            
+            <p style="color: var(--text-secondary); font-size: 14px; font-weight: 600;" id="subtitle">استجابة فورية وتحليل صور متقدم</p>
+        </div>
+
+        <div id="chatArea" style="display:flex; flex-direction:column; gap:18px;"></div>
+    </div>
+</div>
+
+<div class="thumbnails-row" id="thumbs"></div>
+
+<div class="input-container">
+    <div class="input-capsule">
+        <div class="input-top">
+            <input type="text" id="user-input" placeholder="اكتب سؤالك أو طلبك هنا..." onkeypress="if(event.key==='Enter')sendMessage()">
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()"><i class="fa-solid fa-arrow-up"></i></button>
+        </div>
+        
+        <div class="input-bottom">
+            <div style="display:flex; gap:8px;">
+                <button class="action-circle" id="attachBtn" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-paperclip"></i></button>
+                <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFiles(event)">
+            </div>
+            
+            <div style="display:flex; gap:6px;">
+                <button class="pill" id="thinkPill" onclick="togglePill('think')"><i class="fa-solid fa-brain"></i> تفكير</button>
+                <button class="pill active" id="searchPill" onclick="togglePill('search')"><i class="fa-solid fa-globe"></i> بحث</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="sidebar" id="sidebar">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1)">
+        <span style="font-weight:800; font-size:17px; color:#fff"><i class="fa-solid fa-clock-rotate-left" style="color:var(--accent-glow); margin-left:8px"></i> السجل</span>
+        <button onclick="closeSidebar()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer">✕</button>
+    </div>
+    <div id="chatList"></div>
+</div>
+
+<script>
+const DEEPSEEK_API='https://orange-api-theta.vercel.app/api/deepseek';
+
+let currentMode='fast', thinkingEnabled=false, searchEnabled=true;
+let uploadedImages = [];
+let userChats = JSON.parse(localStorage.getItem('chats')||'{}');
+let currentChatId = localStorage.getItem('currentChatId') || ('chat_' + Date.now());
+let history = userChats[currentChatId] || [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    if(history.length > 0) {
+        document.getElementById('welcomeHero').style.display = 'none';
+        history.forEach(msg => {
+            addMsg(msg.role === 'ai' ? 'ai' : 'user', msg.text, false);
+        });
+    }
+    renderChatList();
+});
+
+function setMode(el, mode){
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    
+    const headerTitle = document.getElementById('headerModeTitle');
+    if(mode==='fast'){
+        headerTitle.innerHTML = '<i class="fa-solid fa-bolt" style="color:var(--accent-glow)"></i> سريع';
+    } else if(mode==='expert'){
+        headerTitle.innerHTML = '<i class="fa-regular fa-gem" style="color:var(--accent-glow)"></i> خبير';
+    } else {
+        headerTitle.innerHTML = '<i class="fa-regular fa-image" style="color:var(--accent-glow)"></i> تحليل الصور';
+    }
+}
+
+function togglePill(t){
+    if(t==='think'){
+        thinkingEnabled = !thinkingEnabled;
+        document.getElementById('thinkPill').classList.toggle('active', thinkingEnabled);
+    }
+    if(t==='search'){
+        searchEnabled = !searchEnabled;
+        document.getElementById('searchPill').classList.toggle('active', searchEnabled);
+    }
+}
+
+function handleFiles(e){
+    const files = Array.from(e.target.files);
+    if(files.length === 0) return;
+
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            uploadedImages.push({
+                id: 'img_' + Math.random().toString(36).substr(2, 9),
+                data: ev.target.result
+            });
+            renderThumbs();
+        };
+        reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+}
+
+function renderThumbs(){
+    const container = document.getElementById('thumbs');
+    container.innerHTML = uploadedImages.map((img) => `
+        <div class="thumb-card">
+            <img src="${img.data}" class="thumb-img">
+            <div class="thumb-info">
+                <span style="font-size:12px; font-weight:700;">صورة مرفقة</span>
+                <span class="thumb-status"><i class="fa-solid fa-circle-check"></i> جاهزة للإرسال</span>
+            </div>
+            <button class="thumb-remove" onclick="removeImg('${img.id}')">✕</button>
+        </div>
+    `).join('');
+}
+
+function removeImg(id){
+    uploadedImages = uploadedImages.filter(i => i.id !== id);
+    renderThumbs();
+}
+
+function addMsg(role, html){
+    const area = document.getElementById('chatArea');
+    const div = document.createElement('div');
+    div.className = 'msg ' + role;
+    div.innerHTML = '<div class="bubble">' + html + '</div>';
+    area.appendChild(div);
+    const mainContainer = document.querySelector('.main-container');
+    mainContainer.scrollTop = mainContainer.scrollHeight;
+    return div.querySelector('.bubble');
+}
+
+async function sendMessage(){
+    const input = document.getElementById('user-input');
+    const text = input.value.trim();
+    if(!text && uploadedImages.length === 0) return;
+
+    input.value = '';
+    document.getElementById('welcomeHero').style.display = 'none';
+
+    let userHtml = text;
+    if(uploadedImages.length > 0){
+        userHtml += (text ? '<br>' : '') + uploadedImages.map(img => `<img src="${img.data}">`).join('');
+    }
+    addMsg('user', userHtml);
+
+    const bubble = addMsg('ai', '<span class="typing-cursor"></span>');
+
+    let promptText = text || "قم بتحليل الصور المرفقة واستخراج كامل التفاصيل والمعلومات الموجودة فيها.";
+    let finalPrompt = promptText;
+    if (currentMode === 'vision') {
+        finalPrompt = `[وضع تحليل الصور والرؤية البصرية Computer Vision]: ${promptText}`;
+    } else if (currentMode === 'expert') {
+        finalPrompt = `[وضع خبير - إجابة تفصيلية ومتخصصة]: ${promptText}`;
+    }
+
+    try {
+        const response = await fetch(DEEPSEEK_API, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                prompt: finalPrompt,
+                thinking: thinkingEnabled,
+                search: searchEnabled,
+                images: uploadedImages.map(i => i.data)
+            })
+        });
+
+        if (!response.ok) throw new Error('خطأ في الاتصال بالخادم');
+
+        const data = await response.json();
+        const replyText = data.reply || "لم يتم استلام رد صالح من الخادم.";
+
+        bubble.innerHTML = '';
+        let currentText = '';
+        for (let i = 0; i < replyText.length; i++) {
+            currentText += replyText[i];
+            bubble.innerHTML = currentText + '<span class="typing-cursor"></span>';
+            const mainContainer = document.querySelector('.main-container');
+            mainContainer.scrollTop = mainContainer.scrollHeight;
+            await new Promise(resolve => setTimeout(resolve, 10));
+        }
+
+        bubble.innerHTML = replyText; 
+        
+        history.push({role: 'user', text: userHtml});
+        history.push({role: 'ai', text: replyText});
+        userChats[currentChatId] = history;
+        localStorage.setItem('chats', JSON.stringify(userChats));
+        localStorage.setItem('currentChatId', currentChatId);
+        renderChatList();
+
+    } catch(e) {
+        bubble.innerHTML = '<span style="color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i> حدث خطأ: ' + e.message + '</span>';
+    }
+
+    uploadedImages = [];
+    renderThumbs();
+}
+
+function newChat(){
+    currentChatId = 'chat_' + Date.now();
+    history = [];
+    localStorage.setItem('currentChatId', currentChatId);
+    document.getElementById('chatArea').innerHTML = '';
+    document.getElementById('welcomeHero').style.display = 'flex';
+    uploadedImages = [];
+    renderThumbs();
+    closeSidebar();
+    renderChatList();
+}
+
+function renderChatList() {
+    const list = document.getElementById('chatList');
+    list.innerHTML = '';
+    
+    const keys = Object.keys(userChats);
+    if(keys.length === 0){
+        list.innerHTML = '<div style="color:var(--text-secondary); font-size:14px; text-align:center; padding:20px;">لا توجد محادثات سابقة</div>';
+        return;
+    }
+
+    keys.reverse().forEach(id => {
+        const chatHistory = userChats[id];
+        if(!chatHistory || chatHistory.length === 0) return;
+        const firstMsg = chatHistory[0].text.replace(/<[^>]*>?/gm, '').substring(0, 30) || 'محادثة';
+        
+        const div = document.createElement('div');
+        div.className = 'chat-item ' + (id === currentChatId ? 'active' : '');
+        div.innerHTML = `
+            <span style="font-size:14px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${firstMsg}</span>
+            <button onclick="event.stopPropagation(); deleteChat('${id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; padding:4px;"><i class="fa-solid fa-trash-can"></i></button>
+        `;
+        div.onclick = () => loadChat(id);
+        list.appendChild(div);
+    });
+}
+
+function loadChat(id) {
+    currentChatId = id;
+    history = userChats[id] || [];
+    localStorage.setItem('currentChatId', currentChatId);
+    document.getElementById('welcomeHero').style.display = history.length > 0 ? 'none' : 'flex';
+    
+    const area = document.getElementById('chatArea');
+    area.innerHTML = '';
+    history.forEach(msg => {
+        addMsg(msg.role === 'ai' ? 'ai' : 'user', msg.text);
+    });
+    closeSidebar();
+    renderChatList();
+}
+
+function deleteChat(id) {
+    delete userChats[id];
+    localStorage.setItem('chats', JSON.stringify(userChats));
+    if(currentChatId === id){
+        newChat();
+    } else {
+        renderChatList();
+    }
+}
+
+function openSidebar(){
+    renderChatList();
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('overlay').classList.add('show');
+}
+
+function closeSidebar(){
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('show');
+}
+</script>
+</body>
+</html>

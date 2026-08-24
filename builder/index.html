@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🏗️ باني التطبيقات</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg:#0b0f19;--surface:#14161b;--accent:#00f2fe;--blue:#3b82f6;--text:#f8fafc;--sub:#94a3b8;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;--purple:#8b5cf6}
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Cairo',sans-serif;-webkit-tap-highlight-color:transparent}
+        body{background:var(--bg);color:var(--text);min-height:100vh;padding:14px}
+        
+        .header{display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto 18px;padding:14px 20px;background:var(--surface);border-radius:20px;border:1px solid #222}
+        .logo{font-size:20px;font-weight:900;background:linear-gradient(90deg,#fff,#00f2fe,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        
+        .container{max-width:1100px;margin:0 auto}
+        .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:20px;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:.3s;font-family:'Cairo',sans-serif}
+        .btn:active{transform:scale(.95)}
+        .btn-primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+        .btn-green{background:var(--green);color:#fff}
+        .btn-red{background:var(--red);color:#fff}
+        .btn-yellow{background:var(--yellow);color:#000}
+        .btn-purple{background:var(--purple);color:#fff}
+        .btn-outline{background:transparent;border:1px solid #333;color:var(--sub)}
+        
+        .welcome-hero{text-align:center;padding:45px 20px;background:var(--surface);border-radius:30px;border:1px solid #222}
+        .welcome-hero .icon{font-size:55px;margin-bottom:15px}
+        .welcome-hero h2{font-size:24px;font-weight:800;margin-bottom:10px}
+        .welcome-hero p{color:var(--sub);margin-bottom:20px;font-size:14px}
+        
+        .apps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px;margin-bottom:25px}
+        .app-card{background:var(--surface);border:1px solid #222;border-radius:20px;padding:20px;cursor:pointer;transition:.3s}
+        .app-card:hover{border-color:var(--accent);transform:translateY(-3px)}
+        .app-icon{width:55px;height:55px;border-radius:15px;background:#1a1d24;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:10px;overflow:hidden}
+        .app-icon img{width:100%;height:100%;object-fit:cover}
+        .app-card h4{font-size:16px;font-weight:700;margin-bottom:5px}
+        .app-card p{font-size:12px;color:var(--sub)}
+        
+        .create-form{background:var(--surface);border-radius:25px;padding:25px;border:1px solid #222;display:none}
+        .create-form.active{display:block}
+        .form-group{margin-bottom:18px}
+        .form-group label{display:block;font-size:14px;font-weight:700;margin-bottom:8px;color:var(--sub)}
+        .form-group input,.form-group select,.form-group textarea{width:100%;padding:13px;background:#1a1d24;border:1px solid #333;border-radius:15px;color:#fff;font-size:15px;font-weight:600;outline:none;font-family:'Cairo',sans-serif}
+        .form-group textarea{min-height:100px;resize:vertical}
+        
+        .type-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+        .type-card{background:#1a1d24;border:2px solid #333;border-radius:18px;padding:16px;text-align:center;cursor:pointer;transition:.3s}
+        .type-card.selected{border-color:var(--accent);background:rgba(0,242,254,.1)}
+        .type-card i{font-size:26px;margin-bottom:8px;color:var(--accent)}
+        .type-card span{font-size:11px;font-weight:700}
+        
+        .image-upload{border:2px dashed #333;border-radius:18px;padding:20px;text-align:center;cursor:pointer;transition:.3s}
+        .image-upload:hover{border-color:var(--accent)}
+        .image-preview{width:80px;height:80px;border-radius:20px;object-fit:cover;margin:10px auto;display:none}
+        
+        .dashboard{display:none}
+        .dashboard.active{display:block}
+        .tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;background:var(--surface);padding:8px;border-radius:20px;border:1px solid #222}
+        .tab{background:transparent;border:none;color:var(--sub);padding:10px 16px;border-radius:15px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap}
+        .tab.active{background:rgba(0,242,254,.1);color:var(--accent)}
+        
+        .panel{background:var(--surface);border-radius:20px;padding:20px;border:1px solid #222;margin-bottom:15px;display:none}
+        .panel.active{display:block}
+        .panel h3{font-size:16px;font-weight:800;margin-bottom:15px;display:flex;align-items:center;gap:8px}
+        
+        .section-item{background:#1a1d24;border-radius:15px;padding:14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+        .section-item .info{display:flex;align-items:center;gap:10px}
+        .section-item .info i{font-size:18px;color:var(--accent)}
+        
+        /* معاينة الموبايل */
+        .phone-preview{width:280px;height:580px;background:#111;border-radius:35px;border:3px solid #333;margin:20px auto;overflow:hidden;position:relative}
+        .phone-notch{width:120px;height:25px;background:#000;border-radius:0 0 15px 15px;margin:0 auto;position:relative;z-index:10}
+        .phone-screen{height:calc(100% - 25px);padding:15px;overflow-y:auto}
+        .preview-app-header{text-align:center;padding:10px;background:var(--surface);border-radius:15px;margin-bottom:10px}
+        .preview-section{background:#1a1d24;border-radius:12px;padding:12px;margin-bottom:8px;font-size:13px;font-weight:600}
+        
+        .back-btn{background:transparent;border:1px solid #333;color:var(--sub);padding:8px 16px;border-radius:15px;cursor:pointer;font-size:13px;font-weight:700}
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <span class="logo">🏗️ باني التطبيقات</span>
+    <button class="btn btn-outline" onclick="goHome()"><i class="fa-solid fa-home"></i> الرئيسية</button>
+</div>
+
+<div class="container">
+    
+    <!-- الرئيسية -->
+    <div id="homePage">
+        <div class="welcome-hero">
+            <div class="icon">🚀</div>
+            <h2>ابنِ تطبيقك بدون برمجة</h2>
+            <p>أنشئ تطبيقك في دقائق - شات، سوشيال، ألعاب، تيك توك، والمزيد</p>
+            <div class="apps-grid" id="appsGrid"></div>
+            <button class="btn btn-primary" onclick="showCreate()"><i class="fa-solid fa-plus"></i> إنشاء تطبيق جديد</button>
+        </div>
+    </div>
+    
+    <!-- إنشاء -->
+    <div class="create-form" id="createPage">
+        <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+            <h2>✨ تطبيق جديد</h2>
+            <button class="back-btn" onclick="goHome()">← رجوع</button>
+        </div>
+        
+        <div class="form-group">
+            <label>📝 اسم التطبيق</label>
+            <input type="text" id="appName" placeholder="مثال: تطبيقي الرائع">
+        </div>
+        
+        <div class="form-group">
+            <label>📦 Package Name</label>
+            <input type="text" id="appPackage" placeholder="com.example.app">
+        </div>
+        
+        <div class="form-group">
+            <label>🖼️ أيقونة التطبيق</label>
+            <div class="image-upload" onclick="document.getElementById('appImage').click()">
+                <i class="fa-solid fa-cloud-upload-alt" style="font-size:30px;color:var(--sub)"></i>
+                <p style="color:var(--sub);font-size:13px;margin-top:8px">اضغط لرفع الأيقونة</p>
+                <img id="imagePreview" class="image-preview">
+                <input type="file" id="appImage" accept="image/*" style="display:none" onchange="previewImage(event)">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>📱 نوع التطبيق</label>
+            <div class="type-grid">
+                <div class="type-card selected" onclick="selectType(this,'فارغ')"><i class="fa-regular fa-square"></i><span>فارغ</span></div>
+                <div class="type-card" onclick="selectType(this,'شات')"><i class="fa-solid fa-comments"></i><span>شات</span></div>
+                <div class="type-card" onclick="selectType(this,'سوشيال')"><i class="fa-solid fa-users"></i><span>سوشيال ميديا</span></div>
+                <div class="type-card" onclick="selectType(this,'ألعاب')"><i class="fa-solid fa-gamepad"></i><span>ألعاب</span></div>
+                <div class="type-card" onclick="selectType(this,'تيك توك')"><i class="fa-brands fa-tiktok"></i><span>تيك توك</span></div>
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="createApp()" style="width:100%;justify-content:center"><i class="fa-solid fa-check"></i> إنشاء التطبيق</button>
+    </div>
+    
+    <!-- لوحة التحكم -->
+    <div class="dashboard" id="dashboard">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab(this,'info')"><i class="fa-solid fa-info-circle"></i> معلومات</button>
+            <button class="tab" onclick="showTab(this,'sections')"><i class="fa-solid fa-folder"></i> الأقسام</button>
+            <button class="tab" onclick="showTab(this,'preview')"><i class="fa-solid fa-eye"></i> معاينة</button>
+            <button class="tab" onclick="showTab(this,'notifications')"><i class="fa-solid fa-bell"></i> إشعارات</button>
+            <button class="tab" onclick="showTab(this,'download')"><i class="fa-solid fa-download"></i> تحميل</button>
+        </div>
+        
+        <div class="panel active" id="tabInfo">
+            <h3>ℹ️ معلومات التطبيق</h3>
+            <div class="form-group"><label>📝 الاسم</label><input id="editName"></div>
+            <div class="form-group"><label>📦 Package</label><input id="editPackage"></div>
+            <div class="form-group">
+                <label>🖼️ الأيقونة</label>
+                <div class="image-upload" onclick="document.getElementById('editImage').click()">
+                    <img id="editImagePreview" class="image-preview">
+                    <input type="file" id="editImage" accept="image/*" style="display:none" onchange="editImagePreview(event)">
+                </div>
+            </div>
+            <button class="btn btn-green" onclick="saveInfo()"><i class="fa-solid fa-save"></i> حفظ</button>
+        </div>
+        
+        <div class="panel" id="tabSections">
+            <h3>📂 أقسام التطبيق</h3>
+            <div id="sectionsList"></div>
+            <button class="btn btn-primary" onclick="addSection()"><i class="fa-solid fa-plus"></i> إضافة قسم</button>
+        </div>
+        
+        <div class="panel" id="tabPreview">
+            <h3>👁️ معاينة التطبيق</h3>
+            <div class="phone-preview">
+                <div class="phone-notch"></div>
+                <div class="phone-screen" id="previewScreen">
+                    <div class="preview-app-header">
+                        <div style="font-size:20px;margin-bottom:5px" id="previewIcon">📱</div>
+                        <h4 id="previewName"></h4>
+                    </div>
+                    <div id="previewSections"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel" id="tabNotifications">
+            <h3>🔔 إرسال إشعار</h3>
+            <div class="form-group"><label>📝 العنوان</label><input id="notifTitle" placeholder="عنوان الإشعار"></div>
+            <div class="form-group"><label>📝 النص</label><input id="notifBody" placeholder="نص الإشعار"></div>
+            <button class="btn btn-yellow" onclick="sendNotification()"><i class="fa-solid fa-paper-plane"></i> إرسال لجميع المستخدمين</button>
+        </div>
+        
+        <div class="panel" id="tabDownload">
+            <h3>⬇️ تحميل التطبيق</h3>
+            <div style="text-align:center;padding:20px">
+                <div style="font-size:50px;margin-bottom:10px">📱</div>
+                <h4 id="downloadName"></h4>
+                <p style="color:var(--sub);font-size:13px;margin:10px 0" id="downloadInfo"></p>
+                <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+                    <button class="btn btn-green" onclick="downloadAPK()"><i class="fa-solid fa-download"></i> تحميل APK</button>
+                    <button class="btn btn-purple" onclick="downloadPWA()"><i class="fa-solid fa-globe"></i> PWA</button>
+                </div>
+                <p style="color:var(--sub);font-size:11px;margin-top:15px">💡 لتحويل APK حقيقي: افتح webintoapp.com وضع رابط صفحتك</p>
+            </div>
+        </div>
+        
+        <button class="back-btn" onclick="goHome()">← رجوع</button>
+    </div>
+</div>
+
+<script>
+let apps=JSON.parse(localStorage.getItem('builder_apps')||'[]');
+let currentApp=null;
+let selectedType='فارغ';
+let appImageData=null;
+
+function goHome(){document.getElementById('homePage').style.display='block';document.getElementById('createPage').classList.remove('active');document.getElementById('dashboard').classList.remove('active');renderApps();}
+function showCreate(){document.getElementById('homePage').style.display='none';document.getElementById('createPage').classList.add('active');}
+
+function previewImage(e){
+    const file=e.target.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=function(ev){
+        appImageData=ev.target.result;
+        document.getElementById('imagePreview').src=appImageData;
+        document.getElementById('imagePreview').style.display='block';
+    };
+    reader.readAsDataURL(file);
+}
+
+function selectType(el,type){selectedType=type;document.querySelectorAll('.type-card').forEach(t=>t.classList.remove('selected'));el.classList.add('selected');}
+
+function createApp(){
+    const name=document.getElementById('appName').value.trim();
+    const pkg=document.getElementById('appPackage').value.trim()||'com.'+name.toLowerCase().replace(/\s/g,'')+'.app';
+    if(!name){alert('اكتب اسم التطبيق');return;}
+    
+    const app={id:'app_'+Date.now(),name,package:pkg,image:appImageData||'',type:selectedType,sections:[],createdAt:new Date().toISOString()};
+    apps.push(app);
+    localStorage.setItem('builder_apps',JSON.stringify(apps));
+    currentApp=app;
+    openDashboard();
+}
+
+function openDashboard(){
+    document.getElementById('homePage').style.display='none';
+    document.getElementById('createPage').classList.remove('active');
+    document.getElementById('dashboard').classList.add('active');
+    document.getElementById('editName').value=currentApp.name;
+    document.getElementById('editPackage').value=currentApp.package;
+    if(currentApp.image){
+        document.getElementById('editImagePreview').src=currentApp.image;
+        document.getElementById('editImagePreview').style.display='block';
+    }
+    renderSections();
+    updatePreview();
+}
+
+function showTab(el,tab){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('active');
+    if(tab==='preview')updatePreview();
+    if(tab==='download'){
+        document.getElementById('downloadName').textContent=currentApp.name;
+        document.getElementById('downloadInfo').textContent=currentApp.package+' | '+currentApp.sections.length+' أقسام';
+    }
+}
+
+function saveInfo(){
+    currentApp.name=document.getElementById('editName').value;
+    currentApp.package=document.getElementById('editPackage').value;
+    const idx=apps.findIndex(a=>a.id===currentApp.id);
+    apps[idx]=currentApp;
+    localStorage.setItem('builder_apps',JSON.stringify(apps));
+    alert('✅ تم الحفظ');
+    updatePreview();
+}
+
+function editImagePreview(e){
+    const file=e.target.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=function(ev){
+        currentApp.image=ev.target.result;
+        document.getElementById('editImagePreview').src=currentApp.image;
+        document.getElementById('editImagePreview').style.display='block';
+        const idx=apps.findIndex(a=>a.id===currentApp.id);
+        apps[idx]=currentApp;
+        localStorage.setItem('builder_apps',JSON.stringify(apps));
+        updatePreview();
+    };
+    reader.readAsDataURL(file);
+}
+
+function addSection(){
+    const types=['HTML','WebView','ألعاب','تيك توك','شات','سوشيال ميديا'];
+    const type=prompt('اختر نوع القسم:\n1. HTML\n2. WebView\n3. ألعاب\n4. تيك توك\n5. شات\n6. سوشيال ميديا','1');
+    const idx=parseInt(type)-1;
+    if(idx<0||idx>=types.length){alert('اختيار غير صحيح');return;}
+    currentApp.sections.push({type:types[idx],id:'sec_'+Date.now()});
+    const appIdx=apps.findIndex(a=>a.id===currentApp.id);
+    apps[appIdx]=currentApp;
+    localStorage.setItem('builder_apps',JSON.stringify(apps));
+    renderSections();
+    updatePreview();
+}
+
+function renderSections(){
+    const list=document.getElementById('sectionsList');
+    if(currentApp.sections.length===0){
+        list.innerHTML='<div style="color:var(--sub);text-align:center;padding:20px">لا أقسام - اضغط "إضافة قسم"</div>';
+        return;
+    }
+    list.innerHTML=currentApp.sections.map((s,i)=>
+        '<div class="section-item"><div class="info"><i class="fa-solid fa-folder"></i><span>'+s.type+'</span></div><button class="btn btn-red" style="padding:6px 12px;font-size:12px" onclick="removeSection('+i+')"><i class="fa-solid fa-trash"></i></button></div>'
+    ).join('');
+}
+
+function removeSection(i){
+    currentApp.sections.splice(i,1);
+    const idx=apps.findIndex(a=>a.id===currentApp.id);
+    apps[idx]=currentApp;
+    localStorage.setItem('builder_apps',JSON.stringify(apps));
+    renderSections();
+    updatePreview();
+}
+
+function updatePreview(){
+    document.getElementById('previewName').textContent=currentApp.name;
+    document.getElementById('previewIcon').textContent=currentApp.image?'📱':'📱';
+    const sectionsDiv=document.getElementById('previewSections');
+    if(currentApp.sections.length===0){
+        sectionsDiv.innerHTML='<div style="text-align:center;color:var(--sub);font-size:12px;padding:20px">تطبيق فارغ</div>';
+    }else{
+        sectionsDiv.innerHTML=currentApp.sections.map(s=>
+            '<div class="preview-section"><i class="fa-solid fa-folder" style="color:var(--accent)"></i> '+s.type+'</div>'
+        ).join('');
+    }
+}
+
+function sendNotification(){
+    const title=document.getElementById('notifTitle').value;
+    const body=document.getElementById('notifBody').value;
+    if(!title||!body){alert('اكتب العنوان والنص');return;}
+    alert('✅ تم الإرسال:\n\n📝 '+title+'\n📝 '+body+'\n\nلجميع مستخدمي '+currentApp.name);
+}
+
+function downloadAPK(){
+    const data={name:currentApp.name,package:currentApp.package,type:currentApp.type,sections:currentApp.sections,image:currentApp.image};
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=currentApp.name+'-config.json';
+    a.click();
+    alert('📱 تم تحميل ملف التكوين\n\nلتحويله APK حقيقي:\n1. افتح webintoapp.com\n2. ضع رابط صفحتك\n3. حمّل APK');
+}
+
+function downloadPWA(){
+    const manifest={name:currentApp.name,short_name:currentApp.name,start_url:'/',display:'standalone',background_color:'#0b0f19',theme_color:'#00f2fe'};
+    const blob=new Blob([JSON.stringify(manifest,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='manifest.json';
+    a.click();
+}
+
+function renderApps(){
+    const grid=document.getElementById('appsGrid');
+    if(apps.length===0){
+        grid.innerHTML='<div style="color:var(--sub);text-align:center;width:100%;padding:20px">لا تطبيقات بعد - اضغط "إنشاء تطبيق جديد"</div>';
+        return;
+    }
+    grid.innerHTML=apps.map(app=>
+        '<div class="app-card" onclick="openApp(\''+app.id+'\')">'+
+        '<div class="app-icon">'+(app.image?'<img src="'+app.image+'">':'📱')+'</div>'+
+        '<h4>'+app.name+'</h4>'+
+        '<p>'+app.type+' | '+app.sections.length+' أقسام</p>'+
+        '</div>'
+    ).join('');
+}
+
+function openApp(id){currentApp=apps.find(a=>a.id===id);if(currentApp)openDashboard();}
+
+renderApps();
+</script>
+</body>
+</html>

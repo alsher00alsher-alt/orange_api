@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>محادثة صوتية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        
+        body{
+            font-family:'Cairo',sans-serif;
+            background:linear-gradient(180deg,#0a1628,#0d2137,#1a3a5c,#0d2137,#0a1628);
+            color:#fff;
+            height:100vh;
+            height:100dvh;
+            overflow:hidden;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            user-select:none;
+            position:relative;
+        }
+        
+        /* خلفية ميه متحركة */
+        .water-bg{
+            position:fixed;
+            inset:0;
+            pointer-events:none;
+            z-index:0;
+        }
+        .water-bg canvas{
+            position:absolute;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+        }
+        
+        /* فقاعات */
+        .bubble{
+            position:fixed;
+            bottom:-60px;
+            background:rgba(66,133,244,.15);
+            border:1px solid rgba(66,133,244,.3);
+            border-radius:50%;
+            animation:rise 8s linear infinite;
+            pointer-events:none;
+            z-index:1;
+        }
+        @keyframes rise{
+            0%{transform:translateY(0) scale(1);opacity:0}
+            10%{opacity:.5}
+            90%{opacity:.3}
+            100%{transform:translateY(-100vh) scale(.4);opacity:0}
+        }
+        
+        .container{
+            text-align:center;
+            position:relative;
+            z-index:10;
+        }
+        
+        /* ترحيب بالماية */
+        .welcome-water{
+            font-size:50px;
+            font-weight:800;
+            background:linear-gradient(180deg,#60a5fa,#06b6d4,#34d399,#06b6d4,#60a5fa);
+            background-size:200% 200%;
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+            background-clip:text;
+            animation:waterFlow 3s infinite;
+            margin-bottom:10px;
+            filter:drop-shadow(0 0 20px rgba(6,182,212,.5));
+        }
+        
+        @keyframes waterFlow{
+            0%,100%{background-position:0% 0%}
+            25%{background-position:100% 0%}
+            50%{background-position:100% 100%}
+            75%{background-position:0% 100%}
+        }
+        
+        .subtitle{
+            font-size:18px;
+            color:rgba(255,255,255,.6);
+            margin-bottom:30px;
+        }
+        
+        /* Orb الميه */
+        .water-orb{
+            width:200px;
+            height:200px;
+            border-radius:50%;
+            margin:0 auto;
+            cursor:pointer;
+            position:relative;
+            background:radial-gradient(circle at 35% 35%, rgba(96,165,250,.3), rgba(6,182,212,.2), rgba(13,33,55,.9));
+            box-shadow:0 0 80px rgba(6,182,212,.4), 0 0 160px rgba(66,133,244,.2);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            transition:all .3s;
+            animation:orbPulse 4s infinite;
+            overflow:hidden;
+        }
+        
+        /* ميه جوه الـ Orb */
+        .water-orb::before{
+            content:'';
+            position:absolute;
+            width:200%;
+            height:200%;
+            background:linear-gradient(transparent 40%, rgba(6,182,212,.3) 50%, transparent 60%);
+            animation:waterInside 3s linear infinite;
+        }
+        
+        @keyframes waterInside{
+            0%{transform:rotate(0deg)}
+            100%{transform:rotate(360deg)}
+        }
+        
+        .water-orb:active{transform:scale(.95)}
+        
+        .water-orb.listening{
+            animation:listen 1.2s infinite;
+            box-shadow:0 0 120px rgba(6,182,212,.7), 0 0 200px rgba(66,133,244,.4);
+        }
+        
+        .water-orb.speaking{
+            animation:speak .6s infinite;
+            box-shadow:0 0 150px rgba(34,197,94,.6), 0 0 250px rgba(6,182,212,.3);
+        }
+        
+        @keyframes orbPulse{
+            0%,100%{transform:scale(1)}
+            50%{transform:scale(1.05)}
+        }
+        
+        @keyframes listen{
+            0%,100%{transform:scale(1)}
+            50%{transform:scale(1.12)}
+        }
+        
+        @keyframes speak{
+            0%,100%{transform:scale(1)}
+            25%{transform:scale(1.08)}
+            75%{transform:scale(1.03)}
+        }
+        
+        .orb-icon{
+            font-size:50px;
+            z-index:2;
+            position:relative;
+        }
+        
+        .status{
+            margin-top:25px;
+            font-size:16px;
+            color:rgba(255,255,255,.7);
+            min-height:25px;
+        }
+        
+        .hint{
+            margin-top:10px;
+            font-size:13px;
+            color:rgba(255,255,255,.4);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- فقاعات -->
+    <div class="water-bg" id="waterBg"></div>
+
+    <div class="container">
+        <h1 class="welcome-water" id="welcomeText">أهلاً</h1>
+        <p class="subtitle">اضغط على الدايرة واتكلم بأي لغة</p>
+        
+        <div class="water-orb" id="orb" onclick="toggleVoice()">
+            <span class="orb-icon">💧</span>
+        </div>
+        
+        <div class="status" id="status"></div>
+        <div class="hint">🎙️ محادثة صوتية - كل اللغات</div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://qcpujeurnkbvwlvmylyx.supabase.co/functions/v1/chat';
+        
+        let isListening = false;
+        let recognition = null;
+        let userName = localStorage.getItem('user_name') || '';
+        
+        // فقاعات
+        for(let i=0;i<20;i++){
+            const b=document.createElement('div');
+            b.className='bubble';
+            b.style.left=Math.random()*100+'%';
+            b.style.width=b.style.height=(Math.random()*30+10)+'px';
+            b.style.animationDuration=(Math.random()*8+5)+'s';
+            b.style.animationDelay=Math.random()*10+'s';
+            document.body.appendChild(b);
+        }
+        
+        // ترحيب بالاسم
+        window.onload = function() {
+            if (userName) {
+                document.getElementById('welcomeText').textContent = 'أهلاً ' + userName + ' 👋';
+                speak('أهلاً ' + userName + '! أنا أحمد الشاعر، كيف يمكنني مساعدتك؟');
+            } else {
+                speak('أهلاً بيك! أنا أحمد الشاعر، كيف يمكنني مساعدتك؟');
+            }
+        };
+        
+        function toggleVoice() {
+            if (isListening) {
+                recognition.stop();
+                return;
+            }
+            startListening();
+        }
+        
+        function startListening() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                speak('متصفحك لا يدعم التعرف على الصوت');
+                return;
+            }
+            
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SR();
+            recognition.lang = 'ar-EG'; // بيقفل كل اللغات
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            const orb = document.getElementById('orb');
+            const status = document.getElementById('status');
+            
+            orb.classList.add('listening');
+            status.textContent = '💧 اسمعك...';
+            
+            recognition.onresult = async function(e) {
+                const text = e.results[0][0].transcript;
+                status.textContent = '🗣️ ' + text;
+                orb.classList.remove('listening');
+                
+                const reply = await chatWithAI(text);
+                speak(reply);
+            };
+            
+            recognition.onerror = function(e) {
+                orb.classList.remove('listening');
+                status.textContent = '';
+            };
+            
+            recognition.onend = function() {
+                orb.classList.remove('listening');
+                isListening = false;
+            };
+            
+            recognition.start();
+            isListening = true;
+        }
+        
+        async function chatWithAI(prompt) {
+            const systemPrompt = "أنت أحمد الشاعر، مساعد ذكي مصري. رد بنفس لغة المستخدم. لو حد سألك مين انت قول: أنا أحمد الشاعر، كيف يمكنني مساعدتك؟";
+            
+            try {
+                const payload = {
+                    messages: [
+                        {role: "system", content: systemPrompt},
+                        {role: "user", content: prompt}
+                    ],
+                    model: "openai/gpt-5-nano"
+                };
+                
+                const response = await fetch(SUPABASE_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                
+                let fullText = '';
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                while (true) {
+                    const {done, value} = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (!line.startsWith('data: ')) continue;
+                        const data = line.slice(6);
+                        if (data === '[DONE]') break;
+                        
+                        try {
+                            const obj = JSON.parse(data);
+                            const delta = obj.choices?.[0]?.delta;
+                            if (delta?.content) fullText += delta.content;
+                        } catch(e) {}
+                    }
+                }
+                
+                return fullText || 'مفيش رد';
+            } catch(e) {
+                return 'حصلت مشكلة، جرب تاني';
+            }
+        }
+        
+        function speak(text) {
+            if (!('speechSynthesis' in window)) return;
+            
+            speechSynthesis.cancel();
+            
+            const orb = document.getElementById('orb');
+            const status = document.getElementById('status');
+            
+            orb.classList.add('speaking');
+            status.textContent = text;
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ar-EG';
+            utterance.rate = 1.1;
+            utterance.pitch = 1;
+            
+            // اختيار صوت مناسب
+            const voices = speechSynthesis.getVoices();
+            const arabicVoice = voices.find(v => v.lang.includes('ar'));
+            if (arabicVoice) utterance.voice = arabicVoice;
+            
+            utterance.onend = function() {
+                orb.classList.remove('speaking');
+                status.textContent = '';
+            };
+            
+            speechSynthesis.speak(utterance);
+        }
+        
+        if ('speechSynthesis' in window) {
+            speechSynthesis.getVoices();
+            speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🏗️ باني التطبيقات</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg:#0b0f19;--surface:#14161b;--accent:#00f2fe;--blue:#3b82f6;--text:#f8fafc;--sub:#94a3b8}
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Cairo',sans-serif;-webkit-tap-highlight-color:transparent}
+        body{background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+        .header{display:flex;justify-content:space-between;align-items:center;max-width:900px;margin:0 auto 30px}
+        .header h1{font-size:24px;font-weight:900;background:linear-gradient(90deg,#fff,#00f2fe,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .container{max-width:900px;margin:0 auto}
+        .welcome-hero{text-align:center;padding:60px 20px;background:var(--surface);border-radius:30px;border:1px solid #222}
+        .welcome-hero .icon{font-size:60px;margin-bottom:20px}
+        .welcome-hero h2{font-size:28px;font-weight:800;margin-bottom:10px}
+        .welcome-hero p{color:var(--sub);margin-bottom:30px}
+        .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 30px;border-radius:25px;font-size:16px;font-weight:700;cursor:pointer;border:none}
+        .btn-primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+        .create-form{background:var(--surface);border-radius:30px;padding:30px;border:1px solid #222;display:none}
+        .create-form.active{display:block}
+        .form-group{margin-bottom:20px}
+        .form-group label{display:block;font-size:14px;font-weight:700;margin-bottom:8px;color:var(--sub)}
+        .form-group input{width:100%;padding:14px;background:#1a1d24;border:1px solid #333;border-radius:15px;color:#fff;font-size:16px;font-weight:600;outline:none;font-family:'Cairo',sans-serif}
+        .type-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+        .type-card{background:#1a1d24;border:2px solid #333;border-radius:20px;padding:20px;text-align:center;cursor:pointer}
+        .type-card.selected{border-color:var(--accent);background:rgba(0,242,254,.1)}
+        .type-card i{font-size:30px;margin-bottom:10px;color:var(--accent)}
+        .apps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px;margin-bottom:30px}
+        .app-card{background:var(--surface);border-radius:20px;padding:20px;cursor:pointer;border:1px solid #222}
+        .dashboard{display:none}
+        .dashboard.active{display:block}
+        .tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+        .tab{background:var(--surface);border:1px solid #333;color:var(--sub);padding:10px 20px;border-radius:20px;font-size:14px;font-weight:700;cursor:pointer}
+        .tab.active{background:rgba(0,242,254,.1);color:var(--accent);border-color:var(--accent)}
+        .panel{background:var(--surface);border-radius:20px;padding:20px;border:1px solid #222;margin-bottom:20px}
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>🏗️ باني التطبيقات</h1>
+    <button class="btn btn-primary" onclick="goHome()">🏠 الرئيسية</button>
+</div>
+<div class="container">
+    <div id="homePage">
+        <div class="welcome-hero">
+            <div class="icon">🚀</div>
+            <h2>ابنِ تطبيقك بدون برمجة</h2>
+            <p>أنشئ تطبيقك في دقائق</p>
+            <div class="apps-grid" id="appsGrid"></div>
+            <button class="btn btn-primary" onclick="showCreate()">➕ إنشاء تطبيق جديد</button>
+        </div>
+    </div>
+    <div class="create-form" id="createPage">
+        <h2 style="margin-bottom:20px">✨ تطبيق جديد</h2>
+        <div class="form-group">
+            <label>📝 اسم التطبيق</label>
+            <input type="text" id="appName" placeholder="مثال: تطبيقي">
+        </div>
+        <div class="form-group">
+            <label>📱 نوع التطبيق</label>
+            <div class="type-grid">
+                <div class="type-card selected" onclick="selectType(this,'فارغ')"><i class="fa-regular fa-square"></i><span>فارغ</span></div>
+                <div class="type-card" onclick="selectType(this,'شات')"><i class="fa-solid fa-comments"></i><span>شات</span></div>
+                <div class="type-card" onclick="selectType(this,'سوشيال')"><i class="fa-solid fa-users"></i><span>سوشيال ميديا</span></div>
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="createApp()" style="width:100%;justify-content:center">✅ إنشاء</button>
+    </div>
+    <div class="dashboard" id="dashboard">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab(this,'info')">ℹ️ معلومات</button>
+            <button class="tab" onclick="showTab(this,'sections')">📂 الأقسام</button>
+            <button class="tab" onclick="showTab(this,'notifications')">🔔 إشعارات</button>
+        </div>
+        <div id="tabInfo" class="panel">
+            <h3>ℹ️ معلومات</h3>
+            <div class="form-group"><label>📝 الاسم</label><input id="editName"></div>
+            <div class="form-group"><label>📦 Package</label><input id="editPackage"></div>
+            <button class="btn btn-primary" onclick="saveInfo()">💾 حفظ</button>
+        </div>
+        <div id="tabSections" class="panel" style="display:none">
+            <h3>📂 الأقسام</h3>
+            <div id="sectionsList"></div>
+            <button class="btn btn-primary" onclick="addSection()">➕ إضافة قسم</button>
+        </div>
+        <div id="tabNotifications" class="panel" style="display:none">
+            <h3>🔔 إشعار</h3>
+            <div class="form-group"><label>📝 العنوان</label><input id="notifTitle"></div>
+            <div class="form-group"><label>📝 النص</label><input id="notifBody"></div>
+            <button class="btn btn-primary" onclick="sendNotification()">📤 إرسال</button>
+        </div>
+    </div>
+</div>
+<script>
+let apps=JSON.parse(localStorage.getItem('builder_apps')||'[]');
+let currentApp=null;
+let selectedType='فارغ';
+
+function goHome(){
+    document.getElementById('homePage').style.display='block';
+    document.getElementById('createPage').classList.remove('active');
+    document.getElementById('dashboard').classList.remove('active');
+    renderApps();
+}
+function showCreate(){
+    document.getElementById('homePage').style.display='none';
+    document.getElementById('createPage').classList.add('active');
+}
+function selectType(el,type){
+    selectedType=type;
+    document.querySelectorAll('.type-card').forEach(t=>t.classList.remove('selected'));
+    el.classList.add('selected');
+}
+function createApp(){
+    const name=document.getElementById('appName').value.trim();
+    if(!name){alert('اكتب اسم');return;}
+    const app={id:'app_'+Date.now(),name,package:'com.'+name.toLowerCase().replace(/\s/g,'')+'.app',type:selectedType,sections:[]};
+    apps.push(app);
+    localStorage.setItem('builder_apps',JSON.stringify(apps));
+    currentApp=app;
+    openDashboard();
+}
+function openDashboard(){
+    document.getElementById('homePage').style.display='none';
+    document.getElementById('createPage').classList.remove('active');
+    document.getElementById('dashboard').classList.add('active');
+    document.getElementById('editName').value=currentApp.name;
+    document.getElementById('editPackage').value=currentApp.package;
+    renderSections();
+}
+function showTab(el,tab){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tabInfo').style.display=tab==='info'?'block':'none';
+    document.getElementById('tabSections').style.display=tab==='sections'?'block':'none';
+    document.getElementById('tabNotifications').style.display=tab==='notifications'?'block':'none';
+}
+function saveInfo(){
+    currentApp.name=document.getElementById('editName').value;
+    currentApp.package=document.getElementById('editPackage').value;
+    const idx=apps.findIndex(a=>a.id===currentApp.id);
+    apps[idx]=currentApp;
+    localStorage.setItem('builder_apps',JSON.stringify(apps));
+    alert('✅ تم الحفظ');
+}
+function addSection(){
+    const types=['HTML','WebView','ألعاب','تيك توك','شات','سوشيال ميديا'];
+    const type=prompt('1.HTML 2.WebView 3.ألعاب 4.تيك توك 5.شات 6.سوشيال','1');
+    const idx=parseInt(type)-1;
+    if(idx<0||idx>=types.length){alert('غلط');return;}
+    currentApp.sections.push({type:types[idx],id:'sec_'+Date.now()});
+    const appIdx=apps.findIndex(a=>a.id===currentApp.id);
+    apps[appIdx]=currentApp;
+    localStorage.setItem('builder_apps',JSON.stringify(apps));
+    renderSections();
+}
+function renderSections(){
+    const list=document.getElementById('sectionsList');
+    if(currentApp.sections.length===0){list.innerHTML='<div style="color:var(--sub)">لا أقسام</div>';return;}
+    list.innerHTML=currentApp.sections.map((s,i)=>'<div style="background:#1a1d24;padding:12px;border-radius:12px;margin-bottom:8px;display:flex;justify-content:space-between"><span>'+s.type+'</span><button onclick="removeSection('+i+')" style="background:red;color:#fff;border:none;border-radius:8px;padding:4px 10px;cursor:pointer">حذف</button></div>').join('');
+}
+function removeSection(i){
+    currentApp.sections.splice(i,1);
+    const idx=apps.findIndex(a=>a.id===currentApp.id);
+    apps[idx]=currentApp;
+    localStorage.setItem('builder_apps',JSON.stringify(apps));
+    renderSections();
+}
+function sendNotification(){
+    const title=document.getElementById('notifTitle').value;
+    const body=document.getElementById('notifBody').value;
+    if(!title||!body){alert('اكتب');return;}
+    alert('✅ تم الإرسال');
+}
+function renderApps(){
+    const grid=document.getElementById('appsGrid');
+    if(apps.length===0){grid.innerHTML='<div style="color:var(--sub);width:100%">لا تطبيقات</div>';return;}
+    grid.innerHTML=apps.map(app=>'<div class="app-card" onclick="openApp(\''+app.id+'\')"><h4>'+app.name+'</h4><p>'+app.type+' | '+app.sections.length+' قسم</p></div>').join('');
+}
+function openApp(id){
+    currentApp=apps.find(a=>a.id===id);
+    if(currentApp)openDashboard();
+}
+renderApps();
+</script>
+</body>
+</html>

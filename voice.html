@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>أحمد الشاعر - AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --water1: #0a1628;
+            --water2: #0d2137;
+            --water3: #1a3a5c;
+            --accent: #4285f4;
+            --accent2: #06b6d4;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{
+            font-family:'Cairo',sans-serif;
+            background:linear-gradient(180deg,var(--water1),var(--water2),var(--water3));
+            color:#fff;
+            overflow:hidden;
+            height:100vh;
+            height:100dvh;
+            touch-action:manipulation;
+            user-select:none;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        
+        .container{
+            text-align:center;
+            position:relative;
+        }
+        
+        /* Orb */
+        .orb-container{
+            position:relative;
+            width:300px;
+            height:300px;
+            margin:0 auto;
+        }
+        .orb{
+            width:280px;
+            height:280px;
+            border-radius:50%;
+            background:radial-gradient(circle at 30% 30%, rgba(66,133,244,.4), rgba(6,182,212,.3), rgba(13,33,55,.8));
+            box-shadow:0 0 80px rgba(66,133,244,.3), 0 0 160px rgba(6,182,212,.2);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            transition:all .3s;
+            animation:pulse 3s infinite ease-in-out;
+            position:relative;
+            overflow:hidden;
+        }
+        .orb:active{
+            transform:scale(.95);
+        }
+        .orb.listening{
+            animation:listening 1.5s infinite;
+            box-shadow:0 0 120px rgba(66,133,244,.6), 0 0 200px rgba(6,182,212,.4);
+        }
+        .orb.speaking{
+            animation:speaking .8s infinite;
+            box-shadow:0 0 150px rgba(34,197,94,.5), 0 0 250px rgba(6,182,212,.3);
+        }
+        
+        @keyframes pulse{
+            0%,100%{transform:scale(1)}
+            50%{transform:scale(1.03)}
+        }
+        @keyframes listening{
+            0%,100%{transform:scale(1)}
+            50%{transform:scale(1.08);box-shadow:0 0 150px rgba(66,133,244,.8)}
+        }
+        @keyframes speaking{
+            0%,100%{transform:scale(1)}
+            25%{transform:scale(1.05)}
+            75%{transform:scale(1.02)}
+        }
+        
+        .orb-label{
+            font-size:20px;
+            font-weight:800;
+            color:#fff;
+            text-shadow:0 0 20px rgba(66,133,244,.8);
+            z-index:10;
+        }
+        
+        /* موجات */
+        .waves{
+            position:absolute;
+            inset:0;
+            border-radius:50%;
+            pointer-events:none;
+        }
+        .wave{
+            position:absolute;
+            inset:-20px;
+            border-radius:50%;
+            border:2px solid rgba(66,133,244,.3);
+            animation:waveExpand 3s infinite;
+            opacity:0;
+        }
+        .wave:nth-child(2){animation-delay:1s}
+        .wave:nth-child(3){animation-delay:2s}
+        
+        @keyframes waveExpand{
+            0%{transform:scale(.8);opacity:0}
+            30%{opacity:1}
+            100%{transform:scale(1.3);opacity:0}
+        }
+        
+        .status{
+            margin-top:30px;
+            font-size:18px;
+            color:rgba(255,255,255,.8);
+            min-height:30px;
+        }
+        
+        .name{
+            font-size:24px;
+            font-weight:800;
+            margin-bottom:10px;
+            background:linear-gradient(90deg,#4285f4,#06b6d4,#34d399);
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="name">🎙️ أحمد الشاعر</div>
+    
+    <div class="orb-container">
+        <div class="orb" id="orb" onclick="toggleVoice()">
+            <div class="waves" id="waves">
+                <div class="wave"></div>
+                <div class="wave"></div>
+                <div class="wave"></div>
+            </div>
+            <span class="orb-label" id="orbLabel">اضغط للتحدث</span>
+        </div>
+    </div>
+    
+    <div class="status" id="status"></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://qcpujeurnkbvwlvmylyx.supabase.co/functions/v1/chat';
+
+let isListening = false;
+let isSpeaking = false;
+let recognition = null;
+
+function toggleVoice() {
+    if (isListening) {
+        recognition.stop();
+        return;
+    }
+    startListening();
+}
+
+function startListening() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('❌ متصفحك لا يدعم التعرف على الصوت');
+        return;
+    }
+    
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.lang = 'ar-EG';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    
+    const orb = document.getElementById('orb');
+    const label = document.getElementById('orbLabel');
+    const status = document.getElementById('status');
+    
+    orb.classList.add('listening');
+    label.textContent = '🎤 اسمعك...';
+    status.textContent = 'اتكلم...';
+    
+    recognition.onresult = async function(e) {
+        const text = e.results[0][0].transcript;
+        status.textContent = '🗣️ انت قلت: ' + text;
+        orb.classList.remove('listening');
+        label.textContent = '⏳ بفكر...';
+        
+        const reply = await chatWithAI(text);
+        speak(reply);
+    };
+    
+    recognition.onerror = function(e) {
+        orb.classList.remove('listening');
+        label.textContent = 'اضغط للتحدث';
+        status.textContent = '❌ ' + e.error;
+    };
+    
+    recognition.onend = function() {
+        orb.classList.remove('listening');
+        if (!isSpeaking) {
+            label.textContent = 'اضغط للتحدث';
+        }
+    };
+    
+    recognition.start();
+    isListening = true;
+}
+
+async function chatWithAI(prompt) {
+    const systemPrompt = "أنت أحمد الشاعر، مساعد ذكي مصري. رد باللهجة المصرية العامية. لو حد سألك مين انت قول: أنا أحمد الشاعر، كيف يمكنني مساعدتك؟";
+    
+    const payload = {
+        messages: [
+            {role: "system", content: systemPrompt},
+            {role: "user", content: prompt}
+        ],
+        model: "openai/gpt-5-nano"
+    };
+    
+    const response = await fetch(SUPABASE_URL, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    });
+    
+    let fullText = '';
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    
+    while (true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const data = line.slice(6);
+            if (data === '[DONE]') break;
+            
+            try {
+                const obj = JSON.parse(data);
+                const delta = obj.choices?.[0]?.delta;
+                if (delta?.content) fullText += delta.content;
+            } catch(e) {}
+        }
+    }
+    
+    return fullText || 'مفيش رد';
+}
+
+function speak(text) {
+    if (!('speechSynthesis' in window)) {
+        alert('❌ متصفحك لا يدعم النطق');
+        return;
+    }
+    
+    const orb = document.getElementById('orb');
+    const label = document.getElementById('orbLabel');
+    const status = document.getElementById('status');
+    
+    orb.classList.add('speaking');
+    label.textContent = '🔊 بتكلم...';
+    status.textContent = text;
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ar-EG';
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    
+    // اختيار صوت مصري لو موجود
+    const voices = speechSynthesis.getVoices();
+    const arabicVoice = voices.find(v => v.lang.includes('ar'));
+    if (arabicVoice) utterance.voice = arabicVoice;
+    
+    utterance.onend = function() {
+        orb.classList.remove('speaking');
+        label.textContent = 'اضغط للتحدث';
+        status.textContent = '';
+        isSpeaking = false;
+    };
+    
+    isSpeaking = true;
+    speechSynthesis.speak(utterance);
+}
+
+// تحميل الأصوات
+if ('speechSynthesis' in window) {
+    speechSynthesis.getVoices();
+    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+}
+</script>
+</body>
+</html>
